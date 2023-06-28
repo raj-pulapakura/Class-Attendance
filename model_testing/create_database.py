@@ -20,6 +20,7 @@ import os
 import cv2
 import pandas as pd
 import uuid
+from model_utils import get_detector, get_face_locations, get_largest_face_bb, save_bb_to_file
 # import matplotlib.pyplot as plt
 
 
@@ -41,83 +42,12 @@ label_map_csv = args.label_map_csv
 output = args.output_path
 
 
-## HELPER FUNCTIONS
-
-
-def get_detector():
-    """
-    Returns a face detector
-    """
-    face_detector = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-    return face_detector
-
-
-def get_face_locations(img_path, face_detector):
-    """
-    Returns the locations of all faces in an image
-
-        img_path: Path to the image
-
-        face_detector: A face detector
-    """
-    img = cv2.imread(img_path, cv2.COLOR_BGR2RGB)
-    faces = face_detector.detectMultiScale(img)
-    return faces
-
-
-def get_largest_face_bb(faces):
-    """
-    Returns the largest face bounding box by area
-
-        faces: list of face bounding boxes (x, y, w, h)
-    """
-    # sort faces by decreasing area (width*height)
-    faces.sort(key=lambda face: face[2]*face[3], reverse=True)
-    # return largest face by area
-    return faces[0]
-
-
-def draw_face_locations(faces, img_path, only_draw_largest=False):
-    """
-    Returns an editted image with all face bounding boxes drawn
-
-        faces: list of face bounding boxes (x, y, w, h)
-
-        img_path: Path to image
-
-        only_draw_largest: Bool determining whether only the largest face by area should be drawn 
-    """
-    img = cv2.imread(img_path, cv2.COLOR_BGR2RGB)
-    if only_draw_largest:
-        (x, y, w, h) = get_largest_face_bb(faces)
-        cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 2)
-    else:
-        for (x, y, w, h) in faces:
-            cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 2)
-    return img
-
-
-def save_bb_to_file(img, face_bb, filename):
-    """
-    Saves only the bounding box portion of an image to a file
-
-        img: Path to image
-
-        face_bb: Bounding box of face (x, y, w, h)
-
-        filename: Path where the cropped image should be saved
-    """
-    (x, y, w, h) = face_bb
-    img = img[y:y+h, x:x+w]
-    cv2.imwrite(filename, img)
-
-
 ## MAIN
 
 
 if __name__ == "__main__":
 
-    face_detector = get_detector()
+    face_detector = get_detector("haarcascade_frontalface_default.xml")
     labels_df = pd.read_csv(label_map_csv)
 
 
@@ -126,11 +56,7 @@ if __name__ == "__main__":
 
         img_path = os.path.join(img_folder, img)
 
-        faces = list(get_face_locations(img_path, face_detector))
-
-        # drawn_faces = draw_face_locations(faces, img_path, only_draw_largest=True)
-        # plt.imshow(drawn_faces)
-        # plt.show()
+        faces = get_face_locations(img_path, face_detector)
 
         face = get_largest_face_bb(faces)
 
