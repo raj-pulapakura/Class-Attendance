@@ -1,32 +1,52 @@
-const { ApolloServer } = require("@apollo/server");
-const { startStandaloneServer } = require("@apollo/server/standalone");
-
-const typeDefs = require("./schema");
-const resolvers = require("./resolvers");
-const StudentAPI = require("./datasources/studentApi");
+import { ApolloServer } from "@apollo/server";
+import { startStandaloneServer } from "@apollo/server/standalone";
+import {
+  startServerAndCreateLambdaHandler,
+  handlers,
+} from "@as-integrations/aws-lambda";
+import typeDefs from "./schema.js";
+import resolvers from "./resolvers.js";
+import StudentAPI from "./datasources/studentApi.js";
 
 async function startApolloServer() {
-    const server = new ApolloServer({
-        typeDefs,
-        resolvers,
-    });
+  const server = new ApolloServer({
+    typeDefs,
+    resolvers,
+  });
 
-    const {url} = await startStandaloneServer(server, { 
-        context: async () => {
-            const { cache } = server;
-            return {
-                dataSources: {
-                    studentAPI: new StudentAPI({ cache }),
-                }
-            }
-        }
-     });
-    
-    console.log(`
+  // UNCOMMENT THIS DURING DEVELOPMENT
+  // const { url } = await startStandaloneServer(server, {
+  //   context: async () => {
+  //     const { cache } = server;
+  //     return {
+  //       dataSources: {
+  //         studentAPI: new StudentAPI({ cache }),
+  //       },
+  //     };
+  //   },
+  // });
+
+  console.log(`
     🚀 Server is running!
-    📭 Query at ${url}
-    `)
+    `);
+
+  return server;
 }
 
-startApolloServer();
+const server = await startApolloServer();
 
+// COMMENT THIS DURING DEVELOPMENT:
+export const graphqlHandler = startServerAndCreateLambdaHandler(
+  server,
+  handlers.createAPIGatewayProxyEventV2RequestHandler(),
+  {
+    context: async () => {
+      const { cache } = server;
+      return {
+        dataSources: {
+          studentAPI: new StudentAPI({ cache }),
+        },
+      };
+    },
+  }
+);

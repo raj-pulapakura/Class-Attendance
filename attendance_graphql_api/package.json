@@ -12,9 +12,11 @@
   "devDependencies": {
     "nodemon": "^2.0.22"
   },
+  "type": "module",
   "dependencies": {
     "@apollo/datasource-rest": "^6.0.1",
     "@apollo/server": "^4.7.5",
+    "@as-integrations/aws-lambda": "^2.0.1",
     "@graphql-tools/mock": "^9.0.0",
     "@graphql-tools/schema": "^10.0.0",
     "graphql": "^16.7.1",
