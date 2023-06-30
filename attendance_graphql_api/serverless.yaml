@@ -1,7 +1,9 @@
-service: apollo-lambda
+service: attendance-graphql
 provider:
   name: aws
+  stage: dev
   runtime: nodejs18.x
+  region: ap-southeast-2
   httpApi:
     cors: true
 functions:
