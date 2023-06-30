@@ -41,31 +41,36 @@ test_img_path = args.test_img_path
 
 if __name__ == "__main__":
     start = time.time()
+
+    # load the vgg network
     vgg_siamese_net = get_vgg_siamese_net("vgg_weights.h5")
     target_size = (224, 224)
 
+    # calculate the embeddings of the faces in the database (only the first face for each identity is used)
     database_embeddings = get_database_embeddings(img_db_path, vgg_siamese_net, target_size)
     print("Loaded database embeddings.")
     print(f"{len(database_embeddings.keys())} identities found.")
 
+    # extract the face from the input test image
     face_detector = get_detector("haarcascade_frontalface_default.xml")
     faces = get_face_locations(test_img_path, face_detector)
     face = get_largest_face_bb(faces)
 
+    # calculate the embeddings for the input test image
     cropped_img = get_cropped_img(test_img_path, face)
     test_img = process_image_for_inference(cropped_img, target_size)
-
     test_img_embeddings = vgg_siamese_net.predict(test_img)[0, :]
 
+    # find the database embedding with the best similarity to the test image embeddings
     matched_identity = ""
     matched_sim_score = np.inf
-
     for identity, embeddings in database_embeddings.items():
         sim_score = find_cosine_similarity(test_img_embeddings, embeddings)
         if sim_score < matched_sim_score:
             matched_sim_score = sim_score
             matched_identity = identity
 
+    # print the best matching identity
     print(f"Determined identity: {matched_identity}")
     end = time.time()
     print(f"Process took {round(end-start, 2)}s")

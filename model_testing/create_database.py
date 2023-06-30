@@ -47,28 +47,34 @@ output = args.output_path
 
 if __name__ == "__main__":
 
+    # load face detector
     face_detector = get_detector("haarcascade_frontalface_default.xml")
+    # load label map csv file
     labels_df = pd.read_csv(label_map_csv)
+
+    # create the output dir if it doesn't exist
+    if not os.path.exists(output):
+        os.mkdir(output)
 
 
     for img in os.listdir(img_folder):
+        # check if img is indeed an image
         if os.path.splitext(img)[1] not in [".jpg", ".png"]: continue
 
         img_path = os.path.join(img_folder, img)
-
+        # extract the face from each image
         faces = get_face_locations(img_path, face_detector)
-
         face = get_largest_face_bb(faces)
-
+        # extract the identity from the label map csv file
         identity = labels_df[labels_df["file"]==img]["person_name"].values[0]
 
+        # create a dir for the identity if it doesn't already exist
         identity_dir = os.path.join(output, identity)
-
         if not os.path.exists(identity_dir):
             os.mkdir(identity_dir)
 
+        # save the img to the identity dir        
         new_img_path = os.path.join(identity_dir, f"{identity}-{uuid.uuid4()}.jpg")
-
         save_bb_to_file(
             cv2.imread(img_path),
             face,
