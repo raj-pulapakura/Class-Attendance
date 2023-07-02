@@ -1,10 +1,10 @@
-import 'package:app/screens/add.dart';
-import 'package:app/screens/feed.dart';
-import 'package:app/screens/students.dart';
+import 'package:app/screens/add_student.dart';
+import 'package:app/screens/camera_feed.dart';
+import 'package:app/screens/students_list.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import "package:firebase_auth/firebase_auth.dart";
-import "package:app/auth.dart";
+import 'package:app/models/auth.dart';
 
 class MyHomePage extends StatelessWidget {
   MyHomePage({
