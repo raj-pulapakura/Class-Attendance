@@ -31,9 +31,9 @@ class StudentListItem extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Name: ${student.first_name} ${student.last_name}"),
-          Text("Primary contact: ${student.primary_contact}"),
-          Text("Secondary contact: ${student.secondary_contact}"),
+          Text("Name: ${student.firstName} ${student.lastName}"),
+          Text("Primary contact: ${student.primaryContact}"),
+          Text("Secondary contact: ${student.secondaryContact}"),
         ],
       ),
     );

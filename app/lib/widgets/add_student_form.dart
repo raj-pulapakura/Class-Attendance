@@ -1,4 +1,5 @@
-import 'package:app/utils/sendAddStudentRequest.dart';
+import 'package:app/auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class AddStudentForm extends StatefulWidget {
@@ -39,18 +40,24 @@ class _AddStudentFormState extends State<AddStudentForm> {
       );
     }
 
-    final addStudentResponse = await sendAddStudentRequest(
-      firstNameController.text,
-      lastNameController.text,
-      primaryContactController.text,
-      secondaryContactController.text,
-    );
+    // initialize firestore
+    final db = FirebaseFirestore.instance;
 
+    // send request to add student
+    await db.collection("students").add({
+      "firstName": firstNameController.text,
+      "lastName": lastNameController.text,
+      "primaryContact": primaryContactController.text,
+      "secondaryContact": secondaryContactController.text,
+      "user": Auth().currentUser?.email,
+    });
+
+    // display snackbar
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              'Added ${addStudentResponse.student.first_name} ${addStudentResponse.student.last_name} to database'),
+              'Added ${firstNameController.text} ${lastNameController.text} to database'),
         ),
       );
     }
@@ -64,22 +71,22 @@ class _AddStudentFormState extends State<AddStudentForm> {
         children: [
           TextFormField(
             controller: firstNameController,
-            decoration: InputDecoration(labelText: "First Name"),
+            decoration: const InputDecoration(labelText: "First Name"),
             validator: validateTextField,
           ),
           TextFormField(
             controller: lastNameController,
-            decoration: InputDecoration(labelText: "Last Name"),
+            decoration: const InputDecoration(labelText: "Last Name"),
             validator: validateTextField,
           ),
           TextFormField(
             controller: primaryContactController,
-            decoration: InputDecoration(labelText: "Primary contact"),
+            decoration: const InputDecoration(labelText: "Primary contact"),
             validator: validateTextField,
           ),
           TextFormField(
             controller: secondaryContactController,
-            decoration: InputDecoration(labelText: "Secondary contact"),
+            decoration: const InputDecoration(labelText: "Secondary contact"),
             validator: validateTextField,
           ),
           ElevatedButton(

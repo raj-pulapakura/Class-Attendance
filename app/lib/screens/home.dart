@@ -3,9 +3,11 @@ import 'package:app/screens/feed.dart';
 import 'package:app/screens/students.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import "package:firebase_auth/firebase_auth.dart";
+import "package:app/auth.dart";
 
 class MyHomePage extends StatelessWidget {
-  const MyHomePage({
+  MyHomePage({
     super.key,
     required this.title,
     required this.cameras,
@@ -13,10 +15,102 @@ class MyHomePage extends StatelessWidget {
 
   final String title;
   final List<CameraDescription> cameras;
+  final User? user = Auth().currentUser;
+
+  Future<void> signOut() async {
+    await Auth().signOut();
+  }
+
+  Widget buildUserUid() {
+    return Text(user?.email ?? "User email");
+  }
+
+  Widget buildSignOutButton() {
+    return TextButton(
+      onPressed: signOut,
+      child: const Text("Sign Out"),
+    );
+  }
+
+  Widget buildTitle(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      child: Text(
+        "AttendEase",
+        style: Theme.of(context).textTheme.headlineLarge,
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Widget buildFeedPageButton(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (ctx) => FeedPage(
+              cameras: cameras,
+            ),
+          ),
+        );
+      },
+      child: const Text("Scan"),
+    );
+  }
+
+  Widget buildSeeStudentsButton(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (ctx) => const StudentsList(),
+          ),
+        );
+      },
+      child: const Text("See Students"),
+    );
+  }
+
+  Widget buildAddStudentButton(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (ctx) => const AddStudentPage(),
+          ),
+        );
+      },
+      child: const Text("Add Student"),
+    );
+  }
+
+  AppBar buildAppBar(BuildContext context) {
+    return AppBar(
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Signed in as:",
+                  style: Theme.of(context).textTheme.bodySmall),
+              Text("${user?.email}",
+                  style: Theme.of(context).textTheme.bodySmall),
+            ],
+          ),
+          buildSignOutButton(),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: buildAppBar(context),
       body: Center(
         child: FractionallySizedBox(
           widthFactor: 0.7,
@@ -24,49 +118,10 @@ class MyHomePage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Container(
-                margin: const EdgeInsets.only(bottom: 20),
-                child: Text(
-                  "AttendEase",
-                  style: Theme.of(context).textTheme.headlineLarge,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (ctx) => FeedPage(
-                        cameras: cameras,
-                      ),
-                    ),
-                  );
-                },
-                child: const Text("Scan"),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (ctx) => const StudentsList(),
-                    ),
-                  );
-                },
-                child: const Text("See Students"),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (ctx) => const AddStudentPage(),
-                    ),
-                  );
-                },
-                child: const Text("Add Student"),
-              )
+              buildTitle(context),
+              buildFeedPageButton(context),
+              buildSeeStudentsButton(context),
+              buildAddStudentButton(context),
             ],
           ),
         ),
