@@ -1,4 +1,5 @@
 import 'package:app/models/face_comparison.dart';
+import 'package:app/models/student.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
@@ -15,9 +16,34 @@ class FeedPage extends StatefulWidget {
   State<FeedPage> createState() => _FeedPageState();
 }
 
-class _FeedPageState extends State<FeedPage> {
+class _FeedPageState extends State<FeedPage> with WidgetsBindingObserver {
   late CameraController cameraController;
   late FaceDetector faceDetector;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+    faceDetector = GoogleMlKit.vision.faceDetector(
+      const FaceDetectorOptions(
+        mode: FaceDetectorMode.accurate,
+      ),
+    );
+
+    cameraController =
+        CameraController(widget.cameras[1], ResolutionPreset.low);
+
+    initializeCamera();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    cameraController.stopImageStream();
+    cameraController.dispose();
+    super.dispose();
+  }
 
   void initializeCamera() {
     cameraController.initialize().then(
@@ -39,25 +65,6 @@ class _FeedPageState extends State<FeedPage> {
     });
   }
 
-  @override
-  void initState() {
-    super.initState();
-    cameraController =
-        CameraController(widget.cameras[1], ResolutionPreset.max);
-    initializeCamera();
-    faceDetector = GoogleMlKit.vision.faceDetector(
-      const FaceDetectorOptions(
-        mode: FaceDetectorMode.fast,
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    cameraController.dispose();
-    super.dispose();
-  }
-
   InputImageRotation rotationIntToImageRotation(int rotation) {
     switch (rotation) {
       case 90:
@@ -71,7 +78,8 @@ class _FeedPageState extends State<FeedPage> {
     }
   }
 
-  Future<Face> detectFaceFromImage(CameraImage image) async {
+  Future<Face?> detectFaceFromImage(CameraImage image) async {
+    print("DETECTING FACE FROM IMAGE");
     InputImageData firebaseImageMetadata = InputImageData(
       imageRotation: rotationIntToImageRotation(
           cameraController.description.sensorOrientation),
@@ -94,6 +102,8 @@ class _FeedPageState extends State<FeedPage> {
     );
     final List<Face> faces =
         await faceDetector.processImage(firebaseVisionImage);
+
+    if (faces.isEmpty) return null;
     return faces[0];
   }
 
@@ -124,13 +134,16 @@ class _FeedPageState extends State<FeedPage> {
             child: FloatingActionButton(
               onPressed: () {
                 cameraController.startImageStream((CameraImage image) async {
-                  final String matchedIdentity =
+                  final Face? face = await detectFaceFromImage(image);
+                  if (face == null) return;
+                  final Student matchedIdentity =
                       await FaceComparison().findMostSimilarIdentity(
                     cameraImage: image,
-                    face: await detectFaceFromImage(image),
+                    face: face,
                   );
-                  print(matchedIdentity);
-                });
+                  print("Matched identity");
+                  print(matchedIdentity.firstName);
+                }).then((a) => cameraController.stopImageStream());
               },
               child: const Icon(
                 Icons.perm_identity,

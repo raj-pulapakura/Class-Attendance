@@ -30,7 +30,7 @@ class _AddStudentFormState extends State<AddStudentForm> {
   @override
   void initState() {
     faceDetector = GoogleMlKit.vision.faceDetector(
-      FaceDetectorOptions(
+      const FaceDetectorOptions(
         mode: FaceDetectorMode.accurate,
       ),
     );
