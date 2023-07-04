@@ -2,16 +2,13 @@ import 'package:image/image.dart' as imglib;
 import 'package:camera/camera.dart';
 
 imglib.Image? convertToImage(CameraImage image) {
-  print(image.format.group);
   if (image.format.group == ImageFormatGroup.yuv420) {
-    // this would be for ios devices
     return _convertYUV420(image);
   } else if (image.format.group == ImageFormatGroup.bgra8888) {
     return _convertBGRA8888(image);
   } else {
     throw Exception('Image format not supported');
   }
-  return null;
 }
 
 imglib.Image _convertBGRA8888(CameraImage image) {
@@ -32,7 +29,7 @@ imglib.Image _convertYUV420(CameraImage image) {
 
   final int uvyButtonStride = image.planes[1].bytesPerRow;
   final int? uvPixelStride = image.planes[1].bytesPerPixel;
-
+  const shift = (0xFF << 24);
   // for each pixel, extract the YUV values and convert to RGB, then set the pixel in the empty image
   for (int x = 0; x < width; x++) {
     for (int y = 0; y < height; y++) {
@@ -42,11 +39,12 @@ imglib.Image _convertYUV420(CameraImage image) {
       final yp = image.planes[0].bytes[index];
       final up = image.planes[1].bytes[uvIndex];
       final vp = image.planes[2].bytes[uvIndex];
-      int r = (yp + 1.14 * vp).round().clamp(0, 255);
-      int g = (yp - 0.395 * up - 0.518 * vp).round().clamp(0, 255);
-      int b = (yp + 2.032 * up).round().clamp(0, 255);
-
-      img.setPixel(x, y, imglib.ColorFloat32.rgb(r, g, b));
+      int r = (yp + vp * 1436 / 1024 - 179).round().clamp(0, 255);
+      int g = (yp - up * 46549 / 131072 + 44 - vp * 93604 / 131072 + 91)
+          .round()
+          .clamp(0, 255);
+      int b = (yp + up * 1814 / 1024 - 227).round().clamp(0, 255);
+      img.data!.setPixelR(x, y, shift | (b << 16) | (g << 8) | r);
     }
   }
 

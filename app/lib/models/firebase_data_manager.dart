@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:app/models/auth.dart';
+import 'package:app/models/face_comparison.dart';
 import 'package:app/models/student.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -24,6 +25,7 @@ class FirebaseDataManager {
           primaryContact: data["primaryContact"],
           secondaryContact: data["secondaryContact"],
           imgUrl: data["imgUrl"],
+          embeddings: data["embeddings"],
           studentID: docSnapshot.id,
         );
       }).toList();
@@ -62,9 +64,17 @@ class FirebaseDataManager {
     // retreive img url for student image
     final downloadUrl = await imageRef.getDownloadURL();
 
-    // update student document with img url
+    // calculate embeddings
+    final faceML = FaceComparison();
+    await faceML.initializeInterperter();
+    final embeddings = await faceML.runInferenceForStudentImage(downloadUrl);
+
+    // update student document with img url and embeddings
     await db.collection("students").doc(studentID).update(
-      {"imgUrl": downloadUrl},
+      {
+        "imgUrl": downloadUrl,
+        "embeddings": embeddings,
+      },
     );
   }
 

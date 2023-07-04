@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -5,17 +6,42 @@ import 'package:app/models/firebase_data_manager.dart';
 import 'package:app/models/student.dart';
 import 'package:app/utils/image_converter.dart';
 import 'package:camera/camera.dart';
+import 'package:flutter/widgets.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
-import 'package:tflite_flutter/tflite_flutter.dart' as tfl;
+import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image/image.dart' as imgLib;
+import 'package:http/http.dart' show get;
 
 class FaceComparison {
-  late tfl.Interpreter interpreter;
+  late Interpreter interpreter;
 
   Future<void> initializeInterperter() async {
-    interpreter = await tfl.Interpreter.fromAsset(
-      "mobilefacenet.tflite",
-    );
+    Delegate? delegate;
+    try {
+      if (Platform.isAndroid) {
+        delegate = GpuDelegateV2(
+            options: GpuDelegateOptionsV2(
+          isPrecisionLossAllowed: false,
+          inferencePreference: TfLiteGpuInferenceUsage.fastSingleAnswer,
+          inferencePriority1: TfLiteGpuInferencePriority.minLatency,
+          inferencePriority2: TfLiteGpuInferencePriority.auto,
+          inferencePriority3: TfLiteGpuInferencePriority.auto,
+        ));
+      } else if (Platform.isIOS) {
+        delegate = GpuDelegate(
+          options: GpuDelegateOptions(
+              allowPrecisionLoss: true,
+              waitType: TFLGpuDelegateWaitType.active),
+        );
+      }
+      var interpreterOptions = InterpreterOptions()..addDelegate(delegate!);
+
+      interpreter = await Interpreter.fromAsset('mobilefacenet.tflite',
+          options: interpreterOptions);
+    } catch (e) {
+      print('Failed to load model.');
+      print(e);
+    }
   }
 
   Float32List convertImageToByteListFloat32(imgLib.Image image) {
@@ -55,45 +81,88 @@ class FaceComparison {
     CameraImage cameraImage,
     Face face,
   ) async {
-    print("Converting image");
     imgLib.Image? convertedImage = convertToImage(cameraImage);
 
     if (convertedImage == null) {
       throw Exception("Could not process because of invalid image format");
     }
 
-    print("Cropping image to detected face");
     imgLib.Image croppedImage = cropFace(convertedImage, face);
 
-    print("Resizing image");
     imgLib.Image resizedImage = imgLib.copyResizeCropSquare(
       croppedImage,
       size: 112,
     );
 
-    print("Converting image to list for inference");
     List input = convertImageToByteListFloat32(resizedImage);
 
-    print("Reshaping input into appropriate shape for inference");
     input = input.reshape([1, 112, 112, 3]);
 
-    print("Creating empty output list");
     List output = List.generate(1, (index) => List.filled(192, 0));
 
-    print("Initializing interpreter");
-    await initializeInterperter();
-
-    print("Running model");
     interpreter.run(input, output);
 
-    print("Reshaping output");
+    output = List.from(output.reshape([192]));
+
+    return output;
+  }
+
+  Future<List> runInferenceForFileImage(
+    File file,
+    Face face,
+  ) async {
+    final imgLib.Image image = imgLib.Image.fromBytes(
+      width: 112,
+      height: 112,
+      bytes: file.readAsBytesSync().buffer,
+    );
+
+    imgLib.Image croppedImage = cropFace(image, face);
+
+    imgLib.Image resizedImage = imgLib.copyResizeCropSquare(
+      croppedImage,
+      size: 112,
+    );
+
+    List input = convertImageToByteListFloat32(resizedImage);
+
+    input = input.reshape([1, 112, 112, 3]);
+
+    List output = List.generate(1, (index) => List.filled(192, 0));
+
+    interpreter.run(input, output);
+
     output = List.from(output.reshape([192]));
 
     return output;
   }
 
   Future<List> runInferenceForStudentImage(String imgUrl) async {
-    return [];
+    final response = await get(Uri.parse(imgUrl));
+    final decodedImage = await decodeImageFromList(response.bodyBytes);
+
+    final imgLib.Image image = imgLib.Image.fromBytes(
+      width: decodedImage.width,
+      height: decodedImage.height,
+      bytes: (await decodedImage.toByteData())!.buffer,
+    );
+
+    imgLib.Image resizedImage = imgLib.copyResizeCropSquare(
+      image,
+      size: 112,
+    );
+
+    List input = convertImageToByteListFloat32(resizedImage);
+
+    input = input.reshape([1, 112, 112, 3]);
+
+    List output = List.generate(1, (index) => List.filled(192, 0));
+
+    interpreter.run(input, output);
+
+    output = List.from(output.reshape([192]));
+
+    return output;
   }
 
   num calculateEuclideanDistance(List l1, List l2) {
@@ -105,10 +174,48 @@ class FaceComparison {
     return pow(sum, 0.5);
   }
 
+  Future<Student> findMostSimilarIdentityFromFileImage({
+    required File file,
+    required Face face,
+  }) async {
+    await initializeInterperter();
+
+    final cameraFeedEmbeddings = await runInferenceForFileImage(file, face);
+
+    // get all students
+    final students = await FirebaseDataManager.getAllStudents();
+
+    // initialize trackers
+    Student? matchedIdentity;
+    num minDistance = 999;
+
+    for (final student in students) {
+      if (student.imgUrl == null) continue;
+
+      // calculate the distance between the camera face embeddings and the student face embeddings
+      final distance = calculateEuclideanDistance(
+        cameraFeedEmbeddings,
+        student.embeddings,
+      );
+
+      print("${student.firstName}: $distance");
+
+      // if the distance is lower than the threshold and the current lowest distance, update the trackers
+      if (distance < minDistance) {
+        matchedIdentity = student;
+        minDistance = distance;
+      }
+    }
+
+    return matchedIdentity!;
+  }
+
   Future<Student> findMostSimilarIdentity({
     required CameraImage cameraImage,
     required Face face,
   }) async {
+    await initializeInterperter();
+
     // inference
     final cameraFeedEmbeddings =
         await runInferenceForCameraImage(cameraImage, face);

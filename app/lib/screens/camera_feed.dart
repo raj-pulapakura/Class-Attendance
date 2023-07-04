@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:app/models/face_comparison.dart';
 import 'package:app/models/student.dart';
 import 'package:camera/camera.dart';
@@ -19,6 +21,9 @@ class FeedPage extends StatefulWidget {
 class _FeedPageState extends State<FeedPage> with WidgetsBindingObserver {
   late CameraController cameraController;
   late FaceDetector faceDetector;
+  File? file;
+  Student? matchedIdentity;
+  bool loadingStudentIdentity = false;
 
   @override
   void initState() {
@@ -78,8 +83,7 @@ class _FeedPageState extends State<FeedPage> with WidgetsBindingObserver {
     }
   }
 
-  Future<Face?> detectFaceFromImage(CameraImage image) async {
-    print("DETECTING FACE FROM IMAGE");
+  Future<Face?> detectFaceFromCameraImage(CameraImage image) async {
     InputImageData firebaseImageMetadata = InputImageData(
       imageRotation: rotationIntToImageRotation(
           cameraController.description.sensorOrientation),
@@ -107,19 +111,62 @@ class _FeedPageState extends State<FeedPage> with WidgetsBindingObserver {
     return faces[0];
   }
 
-  @override
-  Widget build(BuildContext context) {
-    void onSwitchCameraButtonPressed() {
-      setState(
-        () {
-          cameraController = CameraController(
-              widget.cameras[
-                  cameraController.description == widget.cameras[0] ? 1 : 0],
-              ResolutionPreset.max);
-        },
-      );
+  Future<Face?> detectFaceFromFileImage(File file) async {
+    final inputImage = InputImage.fromFile(file);
+
+    final List<Face> faces = await faceDetector.processImage(inputImage);
+
+    if (faces.isEmpty) return null;
+    return faces[0];
+  }
+
+  onIdentityButtonPressed() async {
+    setState(() {
+      loadingStudentIdentity = true;
+    });
+
+    final XFile xFile = await cameraController.takePicture();
+    setState(
+      () {
+        file = File(xFile.path);
+      },
+    );
+
+    Face? face = await detectFaceFromFileImage(File(xFile.path));
+
+    if (face == null) {
+      setState(() {
+        loadingStudentIdentity = false;
+      });
+      return;
     }
 
+    Student matchedStudent =
+        await FaceComparison().findMostSimilarIdentityFromFileImage(
+      file: File(xFile.path),
+      face: face,
+    );
+
+    setState(() {
+      matchedIdentity = matchedStudent;
+      loadingStudentIdentity = false;
+    });
+  }
+
+  void onSwitchCameraButtonPressed() {
+    setState(
+      () {
+        cameraController = CameraController(
+            widget.cameras[
+                cameraController.description == widget.cameras[0] ? 1 : 0],
+            ResolutionPreset.low);
+      },
+    );
+    initializeCamera();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: !cameraController.value.isInitialized
           ? const Center(
@@ -132,19 +179,7 @@ class _FeedPageState extends State<FeedPage> with WidgetsBindingObserver {
           Container(
             margin: const EdgeInsets.only(right: 10),
             child: FloatingActionButton(
-              onPressed: () {
-                cameraController.startImageStream((CameraImage image) async {
-                  final Face? face = await detectFaceFromImage(image);
-                  if (face == null) return;
-                  final Student matchedIdentity =
-                      await FaceComparison().findMostSimilarIdentity(
-                    cameraImage: image,
-                    face: face,
-                  );
-                  print("Matched identity");
-                  print(matchedIdentity.firstName);
-                }).then((a) => cameraController.stopImageStream());
-              },
+              onPressed: onIdentityButtonPressed,
               child: const Icon(
                 Icons.perm_identity,
               ),
@@ -167,6 +202,10 @@ class _FeedPageState extends State<FeedPage> with WidgetsBindingObserver {
               Icons.home,
             ),
           ),
+          if (matchedIdentity != null)
+            Text(
+                "Student found: ${matchedIdentity!.firstName} ${matchedIdentity!.lastName}"),
+          if (loadingStudentIdentity) const CircularProgressIndicator(),
         ],
       ),
     );

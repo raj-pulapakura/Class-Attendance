@@ -15,6 +15,7 @@ class _AddStudentPageState extends State<AddStudentPage> {
   @override
   void initState() {
     super.initState();
+    super.initState();
   }
 
   @override

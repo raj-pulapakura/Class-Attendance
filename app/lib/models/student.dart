@@ -7,6 +7,7 @@ class Student {
     required this.lastName,
     required this.primaryContact,
     required this.secondaryContact,
+    required this.embeddings,
   });
 
   final String user;
@@ -16,4 +17,5 @@ class Student {
   final String lastName;
   final String primaryContact;
   final String secondaryContact;
+  final List embeddings;
 }
