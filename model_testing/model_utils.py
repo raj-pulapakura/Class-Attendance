@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import os
+import tensorflow as tf
 from tensorflow.keras.models import Model, Sequential
 from tensorflow.keras.layers import Convolution2D, ZeroPadding2D, MaxPooling2D, Flatten, Dropout, Activation
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
@@ -196,3 +197,19 @@ def get_vgg_siamese_net(path_to_weights):
     vgg_siamese_net = Model(inputs=model.layers[0].input, outputs=model.layers[-2].output)
     print("VGG Siamese Network successfully created.")
     return vgg_siamese_net
+
+def save_vgg_model(path_to_weights, save_dir):
+    if not os.path.exists(save_dir):
+        os.mkdir(save_dir)
+    
+    vgg_model = get_vgg_siamese_net(path_to_weights)
+
+    vgg_model.save(save_dir)
+
+def save_vgg_model_as_tflite(path_to_weights, save_file):
+    vgg_model = get_vgg_siamese_net(path_to_weights)
+    converter = tf.lite.TFLiteConverter.from_keras_model(vgg_model)
+    tflite_model = converter.convert()
+
+    with open(save_file, 'wb') as f:
+        f.write(tflite_model)

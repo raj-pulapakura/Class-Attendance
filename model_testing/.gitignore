@@ -1,3 +1,5 @@
 env
 vgg_weights.h5
 __pycache__
+mobilenet_testing
+models
