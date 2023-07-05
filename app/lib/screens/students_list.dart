@@ -1,5 +1,5 @@
 import 'package:app/models/firebase_data_manager.dart';
-import 'package:app/screens/student_view.dart';
+import 'package:app/widgets/student_list_item.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -30,66 +30,6 @@ class _StudentsListState extends State<StudentsList> {
     }
   }
 
-  Widget buildStudentListItem(Student student) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) {
-            return StudentView(student: student);
-          }),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.all(15),
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          borderRadius: const BorderRadius.all(
-            Radius.circular(10),
-          ),
-          color: Colors.grey[100],
-          boxShadow: const [
-            BoxShadow(
-              blurRadius: 2,
-              blurStyle: BlurStyle.outer,
-              color: Colors.grey,
-              spreadRadius: 3,
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            if (student.imgUrl != null)
-              Container(
-                margin: const EdgeInsets.only(right: 20),
-                child: Hero(
-                  tag: "${student.studentID!}-image",
-                  child: Image.network(
-                    student.imgUrl!,
-                    height: 50,
-                    width: 50,
-                  ),
-                ),
-              ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Hero(
-                  tag: "${student.studentID!}-fullname",
-                  child: Text(
-                    "${student.firstName} ${student.lastName}",
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                ),
-                Text("Primary contact: ${student.primaryContact}"),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -109,8 +49,8 @@ class _StudentsListState extends State<StudentsList> {
 
           return ListView.builder(
             itemCount: snapshot.data!.docs.length,
-            itemBuilder: (ctx, index) => buildStudentListItem(
-              Student(
+            itemBuilder: (ctx, index) => StudentListItem(
+              student: Student(
                 studentID: snapshot.data!.docs[index].id,
                 user: snapshot.data!.docs[index]["user"],
                 firstName: snapshot.data!.docs[index]["firstName"],

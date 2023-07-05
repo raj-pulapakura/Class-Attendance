@@ -1,7 +1,8 @@
 import 'dart:io';
 import 'dart:async';
+import 'package:app/models/firebase_data_manager.dart';
 import 'package:app/models/model_service.dart';
-import 'package:app/models/student.dart';
+import 'package:app/widgets/student_list_item.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
@@ -21,9 +22,9 @@ class FeedPage extends StatefulWidget {
 class _FeedPageState extends State<FeedPage> with WidgetsBindingObserver {
   late CameraController cameraController;
   late FaceDetector faceDetector;
-  Student? matchedIdentity;
   ModelService modelService = ModelService();
   bool finishedOneInference = true;
+  final ResolutionPreset resolution = ResolutionPreset.low;
 
   @override
   void initState() {
@@ -43,7 +44,7 @@ class _FeedPageState extends State<FeedPage> with WidgetsBindingObserver {
   void initializeFaceDetector() {
     faceDetector = GoogleMlKit.vision.faceDetector(
       const FaceDetectorOptions(
-        mode: FaceDetectorMode.fast,
+        mode: FaceDetectorMode.accurate,
       ),
     );
   }
@@ -54,12 +55,10 @@ class _FeedPageState extends State<FeedPage> with WidgetsBindingObserver {
   ) async {
     if (shouldSetState) {
       setState(() {
-        cameraController =
-            CameraController(cameraDescription, ResolutionPreset.low);
+        cameraController = CameraController(cameraDescription, resolution);
       });
     } else {
-      cameraController =
-          CameraController(cameraDescription, ResolutionPreset.low);
+      cameraController = CameraController(cameraDescription, resolution);
     }
     try {
       await cameraController.initialize();
@@ -92,9 +91,8 @@ class _FeedPageState extends State<FeedPage> with WidgetsBindingObserver {
       if (modelService.interpreterisReady) {
         modelService
             .findMostSimilarIdentity(cameraImage: image, face: face)
-            .then((Student matchedStudent) {
+            .then((_) {
           setState(() {
-            matchedIdentity = matchedStudent;
             finishedOneInference = true;
           });
         });
@@ -161,25 +159,90 @@ class _FeedPageState extends State<FeedPage> with WidgetsBindingObserver {
     );
   }
 
-  Future<void> scanFromFile() async {
-    final XFile xFile = await cameraController.takePicture();
-    Face? face = await detectFaceFromFileImage(File(xFile.path));
+  Future<void> markStudentAsPresent() async {
+    final studentIsPresent = await FirebaseDataManager.isMarkedAsPresent(
+        modelService.globalMinStudent!.studentID!);
 
-    if (face == null) {
-      return;
+    if (studentIsPresent) {
+      // tell the user the student is already present
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "${modelService.globalMinStudent!.firstName} ${modelService.globalMinStudent!.lastName} is already present",
+            ),
+          ),
+        );
+      }
+    } else {
+      // mark the student as present
+      await FirebaseDataManager.markStudentAsPresent(
+          modelService.globalMinStudent!.studentID!);
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "${modelService.globalMinStudent!.firstName} ${modelService.globalMinStudent!.lastName} has been marked as present",
+            ),
+          ),
+        );
+      }
     }
+  }
 
-    await modelService.initializeInterperter();
-
-    Student matchedStudent =
-        await modelService.findMostSimilarIdentityFromFileImage(
-      file: File(xFile.path),
-      face: face,
+  Widget buildStudentNotFoundWidget() {
+    return const Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text("Detecting..."),
+      ],
     );
+  }
 
-    setState(() {
-      matchedIdentity = matchedStudent;
-    });
+  Widget buildIconButton({
+    required Widget icon,
+    required VoidCallback onPressed,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+          border: Border.all(width: 1, color: Colors.blue),
+          shape: BoxShape.circle),
+      margin: const EdgeInsets.symmetric(horizontal: 5),
+      child: IconButton(
+        style: ButtonStyle(
+          foregroundColor: MaterialStateProperty.all(Colors.blue),
+          backgroundColor: MaterialStateProperty.all(Colors.transparent),
+        ),
+        padding: const EdgeInsets.all(20),
+        icon: icon,
+        onPressed: onPressed,
+      ),
+    );
+  }
+
+  Widget buildStudentFoundWidget() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+          child: StudentListItem(
+            student: modelService.globalMinStudent!,
+            viewStudentOnClick: false,
+          ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            buildIconButton(
+              icon: const Icon(Icons.check),
+              onPressed: markStudentAsPresent,
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   @override
@@ -190,13 +253,14 @@ class _FeedPageState extends State<FeedPage> with WidgetsBindingObserver {
               child: Text("Loading..."),
             )
           : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 CameraPreview(cameraController),
-                if (matchedIdentity == null)
-                  const Text("Detecting...")
-                else
-                  Text(
-                      "Detected student: ${matchedIdentity!.firstName} ${matchedIdentity!.lastName}"),
+                Expanded(
+                  child: modelService.globalMinStudent == null
+                      ? buildStudentNotFoundWidget()
+                      : buildStudentFoundWidget(),
+                ),
               ],
             ),
       floatingActionButton: Row(
@@ -208,10 +272,10 @@ class _FeedPageState extends State<FeedPage> with WidgetsBindingObserver {
             },
             child: const Icon(Icons.home),
           ),
-          FloatingActionButton(
-            onPressed: switchCameraPerspective,
-            child: const Icon(Icons.cameraswitch),
-          ),
+          // FloatingActionButton(
+          //   onPressed: switchCameraPerspective,
+          //   child: const Icon(Icons.cameraswitch),
+          // ),
         ],
       ),
     );

@@ -184,7 +184,7 @@ class _StudentViewState extends State<StudentView> {
               ),
               Positioned(
                 bottom: 10,
-                left: 10,
+                right: 10,
                 child: EditStudentImageButton(
                   studentID: loadedStudent.studentID!,
                   onClose: loadStudent,

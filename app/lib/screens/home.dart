@@ -1,6 +1,7 @@
 import 'package:app/screens/add_student.dart';
 import 'package:app/screens/camera_feed.dart';
 import 'package:app/screens/students_list.dart';
+import 'package:app/screens/todays_attendance.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import "package:firebase_auth/firebase_auth.dart";
@@ -43,48 +44,43 @@ class MyHomePage extends StatelessWidget {
     );
   }
 
-  Widget buildFeedPageButton(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (ctx) => FeedPage(
-              cameras: cameras,
-            ),
-          ),
-        );
-      },
-      child: const Text("Scan"),
+  Widget buildTile({
+    required String text,
+    required VoidCallback onPress,
+    required Widget icon,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: ElevatedButton.icon(
+        onPressed: onPress,
+        icon: icon,
+        label: Text(text),
+      ),
     );
-  }
-
-  Widget buildSeeStudentsButton(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (ctx) => const StudentsList(),
-          ),
-        );
-      },
-      child: const Text("See Students"),
-    );
-  }
-
-  Widget buildAddStudentButton(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (ctx) => const AddStudentPage(),
-          ),
-        );
-      },
-      child: const Text("Add Student"),
-    );
+    // return Material(
+    //   color: Colors.transparent,
+    //   child: InkWell(
+    //     onTap: onPress,
+    //     child: Container(
+    //       padding: const EdgeInsets.all(10),
+    //       decoration: BoxDecoration(
+    //         borderRadius: BorderRadius.circular(10),
+    //         boxShadow: const [
+    //           BoxShadow(
+    //             color: Colors.grey,
+    //             blurRadius: 1,
+    //             blurStyle: BlurStyle.outer,
+    //             offset: Offset(1, 1),
+    //           ),
+    //         ],
+    //       ),
+    //       child: Text(
+    //         text,
+    //         style: Theme.of(context).textTheme.headlineSmall,
+    //       ),
+    //     ),
+    //   ),
+    // );
   }
 
   AppBar buildAppBar(BuildContext context) {
@@ -112,16 +108,62 @@ class MyHomePage extends StatelessWidget {
     return Scaffold(
       appBar: buildAppBar(context),
       body: Center(
-        child: FractionallySizedBox(
-          widthFactor: 0.7,
+        child: Container(
+          margin: const EdgeInsets.all(20),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              buildTitle(context),
-              buildFeedPageButton(context),
-              buildSeeStudentsButton(context),
-              buildAddStudentButton(context),
+            children: [
+              buildTile(
+                text: "Scan Students",
+                icon: const Icon(Icons.camera),
+                onPress: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (ctx) => FeedPage(
+                        cameras: cameras,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              buildTile(
+                text: "View Today's Attendance",
+                icon: const Icon(Icons.person),
+                onPress: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (ctx) => const TodaysAttendancePage(),
+                    ),
+                  );
+                },
+              ),
+              buildTile(
+                text: "View Students",
+                icon: const Icon(Icons.list),
+                onPress: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (ctx) => const StudentsList(),
+                    ),
+                  );
+                },
+              ),
+              buildTile(
+                text: "Add Student",
+                icon: const Icon(Icons.add),
+                onPress: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (ctx) => const AddStudentPage(),
+                    ),
+                  );
+                },
+              ),
             ],
           ),
         ),

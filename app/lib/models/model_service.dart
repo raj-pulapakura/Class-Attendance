@@ -17,6 +17,8 @@ class ModelService {
   final inputSize = 112;
   final outputSize = 192;
   bool interpreterisReady = false;
+  Student? globalMinStudent;
+  num? globalMinDistance;
 
   Future<void> initializeInterperter() async {
     Delegate? delegate;
@@ -39,8 +41,10 @@ class ModelService {
       }
       var interpreterOptions = InterpreterOptions()..addDelegate(delegate!);
 
-      interpreter = await Interpreter.fromAsset('mobilefacenet.tflite',
-          options: interpreterOptions);
+      interpreter = await Interpreter.fromAsset(
+        'mobilefacenet.tflite',
+        options: interpreterOptions,
+      );
 
       interpreterisReady = true;
     } catch (e) {
@@ -78,10 +82,10 @@ class ModelService {
   }
 
   img_lib.Image cropFace(img_lib.Image image, Face faceDetected) {
-    double x = faceDetected.boundingBox.left - 10.0;
-    double y = faceDetected.boundingBox.top - 10.0;
-    double w = faceDetected.boundingBox.width + 10.0;
-    double h = faceDetected.boundingBox.height + 10.0;
+    double x = faceDetected.boundingBox.left;
+    double y = faceDetected.boundingBox.top;
+    double w = faceDetected.boundingBox.width;
+    double h = faceDetected.boundingBox.height;
     return img_lib.copyCrop(
       image,
       x: x.round(),
@@ -103,9 +107,10 @@ class ModelService {
 
     img_lib.Image croppedImage = cropFace(convertedImage, face);
 
-    img_lib.Image resizedImage = img_lib.copyResizeCropSquare(
+    img_lib.Image resizedImage = img_lib.copyResize(
       croppedImage,
-      size: inputSize,
+      width: inputSize,
+      height: inputSize,
     );
 
     return resizedImage;
@@ -120,9 +125,10 @@ class ModelService {
 
     img_lib.Image croppedImage = cropFace(image, face);
 
-    img_lib.Image resizedImage = img_lib.copyResizeCropSquare(
+    img_lib.Image resizedImage = img_lib.copyResize(
       croppedImage,
-      size: inputSize,
+      width: inputSize,
+      height: inputSize,
     );
 
     return resizedImage;
@@ -138,9 +144,10 @@ class ModelService {
       bytes: (await decodedImage.toByteData())!.buffer,
     );
 
-    img_lib.Image resizedImage = img_lib.copyResizeCropSquare(
+    img_lib.Image resizedImage = img_lib.copyResize(
       image,
-      size: inputSize,
+      width: inputSize,
+      height: inputSize,
     );
 
     return resizedImage;
@@ -181,7 +188,7 @@ class ModelService {
     return runModel(image);
   }
 
-  Future<Student> compareInputEmbeddingsWithStudents(
+  Future<void> compareInputEmbeddingsWithStudents(
     List inputEmbeddings,
   ) async {
     // get all students
@@ -190,6 +197,9 @@ class ModelService {
     // initialize trackers
     Student? matchedIdentity;
     num minDistance = 999;
+    const threshold = 0.8;
+
+    final List distanceMap = [];
 
     for (final student in students) {
       if (student.imgUrl == null) continue;
@@ -200,32 +210,47 @@ class ModelService {
         student.embeddings,
       );
 
-      print("${student.firstName}: $distance");
+      distanceMap.add({
+        "student": student,
+        "distance": distance,
+      });
 
-      // if the distance is lower than the threshold and the current lowest distance, update the trackers
-      if (distance < minDistance) {
+      // print("${student.firstName}: $distance");
+
+      // if the distance is lower than the current lowest distance, update the trackers
+      if (distance < minDistance && distance < threshold) {
         matchedIdentity = student;
         minDistance = distance;
       }
     }
 
-    return matchedIdentity!;
+    if ((globalMinDistance == null || minDistance < globalMinDistance!) &&
+        matchedIdentity != null) {
+      print("${matchedIdentity.firstName}: ${minDistance}");
+      globalMinDistance = minDistance;
+      globalMinStudent = matchedIdentity;
+    }
   }
 
-  Future<Student> findMostSimilarIdentityFromFileImage({
+  Future<void> findMostSimilarIdentityFromFileImage({
     required File file,
     required Face face,
   }) async {
     final fileImageEmbeddings = await runModelForFileImage(file, face);
-    return compareInputEmbeddingsWithStudents(fileImageEmbeddings);
+    compareInputEmbeddingsWithStudents(fileImageEmbeddings);
   }
 
-  Future<Student> findMostSimilarIdentity({
+  Future<void> findMostSimilarIdentity({
     required CameraImage cameraImage,
     required Face face,
   }) async {
     final cameraFeedEmbeddings =
         await runModelForCameraImage(cameraImage, face);
-    return compareInputEmbeddingsWithStudents(cameraFeedEmbeddings);
+    compareInputEmbeddingsWithStudents(cameraFeedEmbeddings);
+  }
+
+  resetGlobalIdentity() {
+    globalMinDistance = null;
+    globalMinStudent = null;
   }
 }
