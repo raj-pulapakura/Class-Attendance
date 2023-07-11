@@ -24,10 +24,8 @@ class _TodaysAttendancePageState extends State<TodaysAttendancePage>
   void initState() {
     super.initState();
     tabController = TabController(length: 2, vsync: this);
-    FirebaseDataManager.createTodaysAttendanceRecord().then((_) {
-      updatePresentStudentsState();
-      updateAbsentStudentsState();
-    });
+    updatePresentStudentsState();
+    updateAbsentStudentsState();
   }
 
   @override

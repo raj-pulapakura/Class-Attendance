@@ -55,6 +55,8 @@ class FirebaseDataManager {
 
       if (!docData.exists) {
         await FirebaseDataManager.createTodaysAttendanceRecord();
+        if (status == StudentStatus.present) return [];
+        return FirebaseDataManager.getAllStudents();
       }
 
       // extract the ids of students who are present
@@ -149,6 +151,10 @@ class FirebaseDataManager {
 
     final DocumentSnapshot<Map<String, dynamic>> docData =
         await db.collection("attendance").doc(date).get();
+
+    if (!docData.exists) {
+      await FirebaseDataManager.createTodaysAttendanceRecord();
+    }
 
     final student = docData["studentsPresent"].firstWhere(
       (element) => element["studentID"] == studentID,
