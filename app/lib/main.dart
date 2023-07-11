@@ -113,6 +113,15 @@ class MyApp extends StatelessWidget {
           shadow: const Color.fromRGBO(0, 0, 0, .5),
         ),
         brightness: Brightness.light,
+        buttonTheme: ButtonThemeData(
+          buttonColor: colourPalette.primary.primary500,
+          focusColor: colourPalette.primary.primary600,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(50),
+          ),
+          padding: const EdgeInsets.all(10),
+          textTheme: ButtonTextTheme.primary,
+        ),
       ),
       home: StreamBuilder(
         stream: Auth().authStateChanges,
