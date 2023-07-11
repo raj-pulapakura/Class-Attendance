@@ -1,5 +1,5 @@
-# AttendEase
+# Class Attendance
 
-An automatic attendance app - useful for automating school attendance
+An attendance app which uses facial recognition to take attendance
 
 # in development
