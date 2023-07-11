@@ -1,9 +1,10 @@
 import 'package:app/colour_palette.dart';
 import 'package:app/old_screens/home.dart';
-import 'package:app/old_screens/login_register.dart';
+import 'package:app/screens/login_register.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import "package:firebase_core/firebase_core.dart";
+import 'package:flutter/services.dart';
 import 'models/auth.dart';
 
 late List<CameraDescription> _cameras;
@@ -86,6 +87,11 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   _cameras = await availableCameras();
   await Firebase.initializeApp();
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+    ),
+  );
   runApp(const MyApp());
 }
 
@@ -104,7 +110,7 @@ class MyApp extends StatelessWidget {
           onPrimary: const Color.fromRGBO(255, 255, 255, 1.0),
           secondary: colourPalette.secondary.secondary500,
           onSecondary: const Color.fromRGBO(0, 0, 0, 1.0),
-          error: colourPalette.danger.danger200,
+          error: colourPalette.danger.danger500,
           onError: colourPalette.danger.danger800,
           background: colourPalette.neutralTint.tint100,
           onBackground: colourPalette.neutralShade.shade400,
@@ -112,15 +118,157 @@ class MyApp extends StatelessWidget {
           onSurface: colourPalette.neutralShade.shade500,
           shadow: const Color.fromRGBO(0, 0, 0, .5),
         ),
-        brightness: Brightness.light,
-        buttonTheme: ButtonThemeData(
-          buttonColor: colourPalette.primary.primary500,
-          focusColor: colourPalette.primary.primary600,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(50),
+        textTheme: TextTheme(
+          displayLarge: TextStyle(
+            color: colourPalette.neutralShade.shade400,
+            fontSize: 50,
+            fontWeight: FontWeight.w400,
+            fontFamily: "Montserrat",
           ),
-          padding: const EdgeInsets.all(10),
-          textTheme: ButtonTextTheme.primary,
+          displayMedium: TextStyle(
+            color: colourPalette.neutralShade.shade400,
+            fontSize: 40,
+            fontWeight: FontWeight.w400,
+            fontFamily: "Montserrat",
+          ),
+          displaySmall: TextStyle(
+            color: colourPalette.neutralShade.shade400,
+            fontSize: 32,
+            fontWeight: FontWeight.w400,
+            fontFamily: "Montserrat",
+          ),
+          headlineLarge: TextStyle(
+            color: colourPalette.neutralShade.shade400,
+            fontSize: 32,
+            fontWeight: FontWeight.w400,
+            fontFamily: "Montserrat",
+          ),
+          headlineMedium: TextStyle(
+            color: colourPalette.neutralShade.shade400,
+            fontSize: 28,
+            fontWeight: FontWeight.w400,
+            fontFamily: "Montserrat",
+          ),
+          headlineSmall: TextStyle(
+            color: colourPalette.neutralShade.shade400,
+            fontSize: 24,
+            fontWeight: FontWeight.w400,
+            fontFamily: "Montserrat",
+          ),
+          titleLarge: TextStyle(
+            color: colourPalette.neutralShade.shade400,
+            fontSize: 22,
+            fontWeight: FontWeight.w500,
+            fontFamily: "Montserrat",
+          ),
+          titleMedium: TextStyle(
+            color: colourPalette.neutralShade.shade400,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            fontFamily: "Montserrat",
+            letterSpacing: 0.15,
+          ),
+          titleSmall: TextStyle(
+            color: colourPalette.neutralShade.shade400,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            fontFamily: "Montserrat",
+            letterSpacing: 0.1,
+          ),
+          labelLarge: TextStyle(
+            color: colourPalette.neutralShade.shade400,
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+            fontFamily: "Montserrat",
+            letterSpacing: 0.1,
+          ),
+          labelMedium: TextStyle(
+            color: colourPalette.neutralShade.shade400,
+            fontSize: 12,
+            fontWeight: FontWeight.w400,
+            fontFamily: "Montserrat",
+            letterSpacing: 0.5,
+          ),
+          labelSmall: TextStyle(
+            color: colourPalette.neutralShade.shade400,
+            fontSize: 11,
+            fontWeight: FontWeight.w400,
+            fontFamily: "Montserrat",
+            letterSpacing: 0.5,
+          ),
+          bodyLarge: TextStyle(
+            color: colourPalette.neutralShade.shade400,
+            fontSize: 16,
+            fontWeight: FontWeight.w400,
+            fontFamily: "Montserrat",
+            letterSpacing: 0.15,
+          ),
+          bodyMedium: TextStyle(
+            color: colourPalette.neutralShade.shade400,
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+            fontFamily: "Montserrat",
+            letterSpacing: 0.25,
+          ),
+          bodySmall: TextStyle(
+            color: colourPalette.neutralShade.shade400,
+            fontSize: 12,
+            fontWeight: FontWeight.w400,
+            fontFamily: "Montserrat",
+            letterSpacing: 0.4,
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          focusColor: colourPalette.primary.primary500,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 15,
+            vertical: 17,
+          ),
+          labelStyle: TextStyle(
+            color: colourPalette.neutralShade.shade400,
+            fontSize: 15,
+            fontWeight: FontWeight.w400,
+            fontFamily: "Montserrat",
+            letterSpacing: 0.5,
+          ),
+          floatingLabelStyle: TextStyle(
+            color: colourPalette.primary.primary500,
+            fontSize: 15,
+            fontWeight: FontWeight.w400,
+            fontFamily: "Montserrat",
+            letterSpacing: 0.5,
+          ),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ButtonStyle(
+            elevation: MaterialStateProperty.all(5),
+            foregroundColor: MaterialStateProperty.all(Colors.white),
+            backgroundColor:
+                MaterialStateProperty.all(colourPalette.primary.primary500),
+            overlayColor:
+                MaterialStateProperty.all(colourPalette.primary.primary600),
+            padding: MaterialStateProperty.all(
+              const EdgeInsets.symmetric(
+                horizontal: 50,
+                vertical: 20,
+              ),
+            ),
+            shape: MaterialStateProperty.all(
+              RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(100),
+              ),
+            ),
+            textStyle: MaterialStateProperty.all(
+              const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontFamily: "Montserrat",
+              ),
+            ),
+          ),
         ),
       ),
       home: StreamBuilder(
@@ -132,7 +280,7 @@ class MyApp extends StatelessWidget {
               cameras: _cameras,
             );
           } else {
-            return const LoginPage();
+            return const LoginRegisterScreen();
           }
         },
       ),

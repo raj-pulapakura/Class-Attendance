@@ -11,6 +11,7 @@ In this app we will need three models:
 Fields:
 
 - `id`: unique identifier, most likely an email address
+- `name`: name of user
 - `classes`: a list of classes (ids)
 - `students`: a list of students (ids)
 

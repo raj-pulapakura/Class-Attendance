@@ -45,6 +45,9 @@ dependencies:
   firebase_storage: ^11.2.4
   camera: ^0.10.5+2
   intl: ^0.18.1
+  flutter_svg: ^2.0.7
+  email_validator: ^2.1.17
+  google_sign_in: ^6.1.4
 
 dev_dependencies:
   flutter_test:
@@ -69,7 +72,9 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/
+    - assets/images/google.svg
+    - assets/images/microsoft.svg
+    - assets/mobilefacenet.tflite
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
@@ -88,13 +93,16 @@ flutter:
         - asset: fonts/Montserrat-Regular.ttf
         - asset: fonts/Montserrat-RegularItalic.ttf
           style: italic
-
         - asset: fonts/Montserrat-Light.ttf
           weight: 300
         - asset: fonts/Montserrat-LightItalic.ttf
           style: italic
           weight: 300
-
+        - asset: fonts/Montserrat-Medium.ttf
+          weight: 500
+        - asset: fonts/Montserrat-MediumItalic.ttf
+          style: italic
+          weight: 500
         - asset: fonts/Montserrat-Bold.ttf
           weight: 700
         - asset: fonts/Montserrat-BoldItalic.ttf
