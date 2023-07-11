@@ -1,5 +1,5 @@
 import 'package:app/models/firebase_data_manager.dart';
-import 'package:app/widgets/student_list_item.dart';
+import 'package:app/old_widgets/student_list_item.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 

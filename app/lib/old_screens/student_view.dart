@@ -1,6 +1,6 @@
 import 'package:app/models/firebase_data_manager.dart';
-import 'package:app/widgets/edit_student_image_button.dart';
-import 'package:app/widgets/edit_student_info.dart';
+import 'package:app/old_widgets/edit_student_image_button.dart';
+import 'package:app/old_widgets/edit_student_info.dart';
 import 'package:flutter/material.dart';
 
 import '../models/student.dart';

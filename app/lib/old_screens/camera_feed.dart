@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:async';
 import 'package:app/models/firebase_data_manager.dart';
 import 'package:app/models/model_service.dart';
-import 'package:app/widgets/student_list_item.dart';
+import 'package:app/old_widgets/student_list_item.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';

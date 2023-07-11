@@ -3,7 +3,6 @@ import 'package:app/old_screens/login_register.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import "package:firebase_core/firebase_core.dart";
-
 import 'models/auth.dart';
 
 late List<CameraDescription> _cameras;
@@ -26,10 +25,6 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      // home: MyHomePage(
-      //   title: 'Flutter Demo Home Page',
-      //   cameras: _cameras,
-      // ),
       home: StreamBuilder(
         stream: Auth().authStateChanges,
         builder: (context, snapshot) {

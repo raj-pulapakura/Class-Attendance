@@ -1,7 +1,7 @@
 import 'package:app/models/firebase_data_manager.dart';
 import 'package:app/models/student.dart';
 import 'package:app/utils/datetime_utils.dart';
-import 'package:app/widgets/student_list_item.dart';
+import 'package:app/old_widgets/student_list_item.dart';
 import 'package:flutter/material.dart';
 
 class TodaysAttendancePage extends StatefulWidget {
