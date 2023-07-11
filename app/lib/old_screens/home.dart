@@ -1,7 +1,7 @@
-import 'package:app/screens/add_student.dart';
-import 'package:app/screens/camera_feed.dart';
-import 'package:app/screens/students_list.dart';
-import 'package:app/screens/todays_attendance.dart';
+import 'package:app/old_screens/add_student.dart';
+import 'package:app/old_screens/camera_feed.dart';
+import 'package:app/old_screens/students_list.dart';
+import 'package:app/old_screens/todays_attendance.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import "package:firebase_auth/firebase_auth.dart";

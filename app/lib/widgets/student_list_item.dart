@@ -1,6 +1,6 @@
 import 'package:app/models/firebase_data_manager.dart';
 import 'package:app/models/student.dart';
-import 'package:app/screens/student_view.dart';
+import 'package:app/old_screens/student_view.dart';
 import 'package:flutter/material.dart';
 
 class StudentListItem extends StatelessWidget {
