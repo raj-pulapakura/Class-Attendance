@@ -72,9 +72,13 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
+    - assets/mobilefacenet.tflite
     - assets/images/google.svg
     - assets/images/microsoft.svg
-    - assets/mobilefacenet.tflite
+    - assets/images/Face Recognition icon.svg
+    - assets/images/List icon.svg
+    - assets/images/Mail icon.svg
+    - assets/images/SMS icon.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

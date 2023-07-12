@@ -1,5 +1,5 @@
 import 'package:app/main.dart';
-import 'package:app/widgets/auth_provider_button.dart';
+import 'package:app/widgets/app_padding.dart';
 import 'package:app/widgets/margin.dart';
 import 'package:app/widgets/title_and_caption.dart';
 import 'package:email_validator/email_validator.dart';
@@ -8,7 +8,12 @@ import "package:firebase_auth/firebase_auth.dart";
 import 'package:app/models/auth.dart';
 
 class LoginRegisterScreen extends StatefulWidget {
-  const LoginRegisterScreen({super.key});
+  const LoginRegisterScreen({
+    super.key,
+    this.isLogin = true,
+  });
+
+  final bool isLogin;
 
   @override
   State<LoginRegisterScreen> createState() => _LoginRegisterScreenState();
@@ -16,7 +21,7 @@ class LoginRegisterScreen extends StatefulWidget {
 
 class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
   String? errorMessage;
-  bool isLogin = false;
+  late bool isLogin;
 
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -24,6 +29,12 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
 
   final formKey = GlobalKey<FormState>();
   bool passwordIsVisible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    isLogin = widget.isLogin;
+  }
 
   @override
   void dispose() {
@@ -35,7 +46,7 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
 
   Future<void> signInWithEmailAndPassword() async {
     try {
-      await Auth().signInWithEmailAndPassword(
+      await Auth.signInWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
@@ -53,20 +64,10 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
 
   Future<void> createUserWithEmailAndPassword() async {
     try {
-      await Auth().createUserWithEmailAndPassword(
+      await Auth.createUserWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
-    } on FirebaseAuthException catch (e) {
-      setState(() {
-        errorMessage = e.message;
-      });
-    }
-  }
-
-  Future<void> signInWithGoogle() async {
-    try {
-      await Auth().signInWithGoogle();
     } on FirebaseAuthException catch (e) {
       setState(() {
         errorMessage = e.message;
@@ -135,6 +136,28 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
     );
   }
 
+  Widget buildLoginOrRegisterButton() {
+    return Row(
+      mainAxisSize: MainAxisSize.max,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(isLogin ? "No account?" : "Have an account?"),
+        const SizedBox(width: 10),
+        TextButton(
+          onPressed: () {
+            setState(() {
+              isLogin = !isLogin;
+            });
+          },
+          child: Text(
+            isLogin ? "Sign up" : "Sign in",
+            style: TextStyle(color: colourPalette.primary.primary500),
+          ),
+        )
+      ],
+    );
+  }
+
   Widget buildSubmitButton() {
     return SizedBox(
       width: double.infinity,
@@ -142,14 +165,13 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
         onPressed: () async {
           final isValid = formKey.currentState!.validate();
 
-          if (isValid) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content:
-                    Text(isLogin ? "Signing in..." : "Creating account..."),
-              ),
-            );
-          }
+          if (!isValid) return;
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(isLogin ? "Signing in..." : "Creating account..."),
+            ),
+          );
 
           setState(() {
             errorMessage = null;
@@ -168,6 +190,22 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                 backgroundColor: colourPalette.danger.danger400,
               ),
             );
+          } else if (context.mounted) {
+            if (isLogin) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("You're signed in, welcome."),
+                ),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text("Welcome, ${fullNameController.text}"),
+                ),
+              );
+            }
+
+            Navigator.of(context).pop();
           }
         },
         child: Text(isLogin ? "Sign in" : "Sign up"),
@@ -175,35 +213,10 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
     );
   }
 
-  Widget buildLoginOrRegisterButton() {
-    return Row(
-      mainAxisSize: MainAxisSize.max,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(isLogin ? "No account?" : "Have an account?"),
-        const SizedBox(width: 10),
-        GestureDetector(
-          onTap: () {
-            setState(() {
-              isLogin = !isLogin;
-            });
-          },
-          child: Text(
-            isLogin ? "Sign up" : "Sign in",
-            style: TextStyle(color: colourPalette.primary.primary500),
-          ),
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        height: double.infinity,
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 30),
+      body: AppPadding(
         child: Center(
           child: Form(
             key: formKey,
@@ -225,30 +238,18 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                   child: buildEmailInput(),
                 ),
                 Margin(
-                  margin: const EdgeInsets.only(bottom: 50),
+                  margin: const EdgeInsets.only(bottom: 30),
                   child: buildPasswordInput(),
                 ),
                 // change to login or register
                 Margin(
-                  margin: const EdgeInsets.only(bottom: 50),
+                  margin: const EdgeInsets.only(bottom: 30),
                   child: buildLoginOrRegisterButton(),
                 ),
                 // submit form
                 Margin(
                   margin: const EdgeInsets.only(bottom: 20),
                   child: buildSubmitButton(),
-                ),
-                // sign in with oauth
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: AuthProviderButton(
-                        authProvider: AuthProvider.google,
-                        onPressed: signInWithGoogle,
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),

@@ -1,6 +1,7 @@
 import 'package:app/colour_palette.dart';
-import 'package:app/old_screens/home.dart';
-import 'package:app/screens/login_register.dart';
+import 'package:app/screens/classes.dart';
+import 'package:app/screens/home.dart';
+import 'package:app/screens/promo.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import "package:firebase_core/firebase_core.dart";
@@ -114,7 +115,7 @@ class MyApp extends StatelessWidget {
           onError: colourPalette.danger.danger800,
           background: colourPalette.neutralTint.tint100,
           onBackground: colourPalette.neutralShade.shade400,
-          surface: colourPalette.neutralTint.tint200,
+          surface: colourPalette.neutralShade.shade100,
           onSurface: colourPalette.neutralShade.shade500,
           shadow: const Color.fromRGBO(0, 0, 0, .5),
         ),
@@ -272,15 +273,18 @@ class MyApp extends StatelessWidget {
         ),
       ),
       home: StreamBuilder(
-        stream: Auth().authStateChanges,
+        stream: Auth.authStateChanges,
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            return MyHomePage(
-              title: "",
-              cameras: _cameras,
-            );
+            // return MyHomePage(
+            //   title: "",
+            //   cameras: _cameras,
+            // );
+            return const HomeScreen();
           } else {
-            return const LoginRegisterScreen();
+            return PromoScreen(
+              prevContext: context,
+            );
           }
         },
       ),

@@ -18,10 +18,11 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> signInWithEmailAndPassword() async {
     try {
-      await Auth().signInWithEmailAndPassword(
+      await Auth.signInWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
+      print(Auth.currentUser!.email);
     } on FirebaseAuthException catch (e) {
       setState(() {
         errorMessage = e.message;
@@ -31,7 +32,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> createUserWithEmailAndPassword() async {
     try {
-      await Auth().createUserWithEmailAndPassword(
+      await Auth.createUserWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );

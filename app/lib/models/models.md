@@ -6,15 +6,6 @@ In this app we will need three models:
 - Class: A class is a group of students. A class will have a separate attendance record from other classes.
 - Student: It's a student.
 
-## User
-
-Fields:
-
-- `id`: unique identifier, most likely an email address
-- `name`: name of user
-- `classes`: a list of classes (ids)
-- `students`: a list of students (ids)
-
 ## Class
 
 Fields:

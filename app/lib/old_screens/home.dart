@@ -16,10 +16,10 @@ class MyHomePage extends StatelessWidget {
 
   final String title;
   final List<CameraDescription> cameras;
-  final User? user = Auth().currentUser;
+  final User? user = Auth.currentUser;
 
   Future<void> signOut() async {
-    await Auth().signOut();
+    await Auth.signOut();
   }
 
   Widget buildUserUid() {
@@ -108,65 +108,7 @@ class MyHomePage extends StatelessWidget {
     return Scaffold(
       appBar: buildAppBar(context),
       body: Center(
-        child: Container(
-          margin: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              buildTile(
-                text: "Scan Students",
-                icon: const Icon(Icons.camera),
-                onPress: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (ctx) => FeedPage(
-                        cameras: cameras,
-                      ),
-                    ),
-                  );
-                },
-              ),
-              buildTile(
-                text: "View Today's Attendance",
-                icon: const Icon(Icons.person),
-                onPress: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (ctx) => const TodaysAttendancePage(),
-                    ),
-                  );
-                },
-              ),
-              buildTile(
-                text: "View Students",
-                icon: const Icon(Icons.list),
-                onPress: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (ctx) => const StudentsList(),
-                    ),
-                  );
-                },
-              ),
-              buildTile(
-                text: "Add Student",
-                icon: const Icon(Icons.add),
-                onPress: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (ctx) => const AddStudentPage(),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
+        child: Text("hello"),
       ),
     );
   }

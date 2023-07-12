@@ -207,7 +207,7 @@ class FirebaseDataManager {
     try {
       QuerySnapshot querySnapshot = await FirebaseFirestore.instance
           .collection("students")
-          .where("user", isEqualTo: Auth().currentUser?.email)
+          .where("user", isEqualTo: Auth.currentUser?.email)
           .get();
 
       return querySnapshot.docs.map((docSnapshot) {
@@ -246,7 +246,7 @@ class FirebaseDataManager {
       "lastName": lastName,
       "primaryContact": primaryContact,
       "secondaryContact": secondaryContact,
-      "user": Auth().currentUser?.email,
+      "user": Auth.currentUser?.email,
     });
 
     // retrieve studentId

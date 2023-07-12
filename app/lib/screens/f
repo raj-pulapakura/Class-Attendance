@@ -1,0 +1,24 @@
+Column(
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Text(
+                      "Classes allow you to group students and take attendance. Let’s make your first one!",
+                      style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                            color: colourPalette.neutralShade.shade300,
+                          ),
+                    ),
+                    TextFormField(
+                      decoration: const InputDecoration(
+                        labelText: "Class Name",
+                        helperText: "e.g. English Homeroom",
+                      ),
+                    ),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {},
+                        child: const Text("Create class"),
+                      ),
+                    )
+                  ],
+                ),
